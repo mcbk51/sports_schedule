@@ -6,22 +6,22 @@ import (
 )
 
 type ScheduleConfig struct {
-	ShowScores    bool
-	ShowStatus    bool
-	CompactMode   bool
-	SortByTime    bool
-	FilterByTeam  string
-	MaxGames      int
+	ShowScores   bool
+	ShowStatus   bool
+	CompactMode  bool
+	SortByTime   bool
+	FilterByTeam string
+	MaxGames     int
 }
 
 func DefaultScheduleConfig() *ScheduleConfig {
 	return &ScheduleConfig{
-		ShowScores:    true,
-		ShowStatus:    true,
-		CompactMode:   false,
-		SortByTime:    true,
-		FilterByTeam:  "",
-		MaxGames:      0, // 0 means no limit
+		ShowScores:   true,
+		ShowStatus:   true,
+		CompactMode:  false,
+		SortByTime:   true,
+		FilterByTeam: "",
+		MaxGames:     0,
 	}
 }
 
@@ -42,7 +42,7 @@ func (tr *TimeRange) Contains(t time.Time) bool {
 }
 
 func (tr *TimeRange) String() string {
-	return fmt.Sprintf("%s to %s", 
-		tr.Start.Format("3:04 PM"), 
+	return fmt.Sprintf("%s to %s",
+		tr.Start.Format("3:04 PM"),
 		tr.End.Format("3:04 PM"))
 }
