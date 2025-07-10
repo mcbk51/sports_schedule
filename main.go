@@ -6,8 +6,8 @@ import (
 	"flag"
 	"time"
 	"strings"
-	"sports-schedule/api"
-	"sports-schedule/internal"
+	"github.com/mcbk51/sport_schedule/api"
+	"github.com/mcbk51/sport_schedule/internal"
 )
 
 func main() {
