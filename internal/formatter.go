@@ -7,7 +7,6 @@ import (
 	"github.com/mcbk51/sport_schedule/api"
 )
 
-// PrintSchedule prints the games schedule in a formatted way
 func PrintSchedule(league string, date time.Time, games []api.Game) {
 	fmt.Printf("\n🏈 🏀 ⚾ 🏒 Sports Schedule for %s - %s\n", strings.ToUpper(league), date.Format("Monday, January 2, 2006"))
 	fmt.Println(strings.Repeat("=", 60))
