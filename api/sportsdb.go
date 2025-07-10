@@ -9,34 +9,30 @@ import (
 	"time"
 )
 
-
 type Game struct {
-	HomeTeam    string    `json:"home_team"`
-	AwayTeam    string    `json:"away_team"`
-	StartTime   time.Time `json:"start_time"`
-	League      string    `json:"league"`
-	Status      string    `json:"status"`
-	HomeScore   int       `json:"home_score"`
-	AwayScore   int       `json:"away_score"`
+	HomeTeam  string    `json:"home_team"`
+	AwayTeam  string    `json:"away_team"`
+	StartTime time.Time `json:"start_time"`
+	League    string    `json:"league"`
+	Status    string    `json:"status"`
+	HomeScore int       `json:"home_score"`
+	AwayScore int       `json:"away_score"`
 }
-
 
 type ESPNResponse struct {
 	Events []struct {
-		Name        string `json:"name"`
-		ShortName   string `json:"shortName"`
-		Date        string `json:"date"`
-		Status      struct {
+		Name      string `json:"name"`
+		ShortName string `json:"shortName"`
+		Date      string `json:"date"`
+		Status    struct {
 			Type struct {
 				Description string `json:"description"`
 			} `json:"type"`
 		} `json:"status"`
 		Competitions []struct {
-			Date        string `json:"date"`
-			StartDate   string `json:"startDate"`
 			Competitors []struct {
 				Team struct {
-					DisplayName string `json:"displayName"`
+					DisplayName  string `json:"displayName"`
 					Abbreviation string `json:"abbreviation"`
 				} `json:"team"`
 				HomeAway string `json:"homeAway"`
@@ -46,10 +42,9 @@ type ESPNResponse struct {
 	} `json:"events"`
 }
 
-
 func GetGames(league string, date time.Time) ([]Game, error) {
 	var games []Game
-	
+
 	leagues := []string{"nfl", "nba", "nhl", "mlb"}
 	if league != "all" {
 		leagues = []string{strings.ToLower(league)}
@@ -67,10 +62,10 @@ func GetGames(league string, date time.Time) ([]Game, error) {
 	return games, nil
 }
 
-
 func fetchGamesForLeague(league string, date time.Time) ([]Game, error) {
 	dateStr := date.Format("20060102")
-	
+
+	// ESPN API endpoint for different leagues
 	var url string
 	switch league {
 	case "nfl":
@@ -129,24 +124,8 @@ func fetchGamesForLeague(league string, date time.Time) ([]Game, error) {
 			}
 		}
 
-		var startTime time.Time
-		var err error
-		
-		// First try the competition date (usually the actual start time)
-		if len(event.Competitions) > 0 && event.Competitions[0].StartDate != "" {
-			startTime, err = time.Parse(time.RFC3339, event.Competitions[0].StartDate)
-		} else if len(event.Competitions) > 0 && event.Competitions[0].Date != "" {
-			startTime, err = time.Parse(time.RFC3339, event.Competitions[0].Date)
-		} else {
-			// Fallback to event date
-			startTime, err = time.Parse(time.RFC3339, event.Date)
-		}
-		
-		if err != nil {
-			fmt.Printf("Warning: Could not parse date for game %s: %v\n", event.Name, err)
-			startTime = time.Now() // Fallback to current time
-		}
-		
+		startTime, _ := time.Parse(time.RFC3339, event.Date)
+
 		game := Game{
 			HomeTeam:  homeTeam,
 			AwayTeam:  awayTeam,
