@@ -35,7 +35,6 @@ func main() {
 	internal.PrintSchedule(*league, parsedDate, games)
 }
 
-// parseDate parses the date string and returns a time.Time
 func parseDate(dateStr string) (time.Time, error) {
 	now := time.Now()
 	
@@ -45,11 +44,9 @@ func parseDate(dateStr string) (time.Time, error) {
 	case "tomorrow":
 		return now.AddDate(0, 0, 1), nil
 	default:
-		// Try to parse MM-DD-YYYY format
 		if parsedTime, err := time.Parse("01-02-2006", dateStr); err == nil {
 			return parsedTime, nil
 		}
-		// Try to parse YYYY-MM-DD format
 		if parsedTime, err := time.Parse("2006-01-02", dateStr); err == nil {
 			return parsedTime, nil
 		}
