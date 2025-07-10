@@ -32,6 +32,8 @@ type ESPNResponse struct {
 			} `json:"type"`
 		} `json:"status"`
 		Competitions []struct {
+			Date        string `json:"date"`
+			StartDate   string `json:"startDate"`
 			Competitors []struct {
 				Team struct {
 					DisplayName string `json:"displayName"`
@@ -128,7 +130,24 @@ func fetchGamesForLeague(league string, date time.Time) ([]Game, error) {
 			}
 		}
 
-		startTime, _ := time.Parse(time.RFC3339, event.Date)
+		// Try to get the start time from multiple possible fields
+		var startTime time.Time
+		var err error
+		
+		// First try the competition date (usually the actual start time)
+		if len(event.Competitions) > 0 && event.Competitions[0].StartDate != "" {
+			startTime, err = time.Parse(time.RFC3339, event.Competitions[0].StartDate)
+		} else if len(event.Competitions) > 0 && event.Competitions[0].Date != "" {
+			startTime, err = time.Parse(time.RFC3339, event.Competitions[0].Date)
+		} else {
+			// Fallback to event date
+			startTime, err = time.Parse(time.RFC3339, event.Date)
+		}
+		
+		if err != nil {
+			fmt.Printf("Warning: Could not parse date for game %s: %v\n", event.Name, err)
+			startTime = time.Now() // Fallback to current time
+		}
 		
 		game := Game{
 			HomeTeam:  homeTeam,
