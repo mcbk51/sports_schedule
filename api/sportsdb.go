@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+// Game represents a sports game
 type Game struct {
 	HomeTeam  string    `json:"home_team"`
 	AwayTeam  string    `json:"away_team"`
@@ -19,6 +20,7 @@ type Game struct {
 	AwayScore int       `json:"away_score"`
 }
 
+// ESPNResponse represents the structure of ESPN API response
 type ESPNResponse struct {
 	Events []struct {
 		Name      string `json:"name"`
@@ -42,6 +44,7 @@ type ESPNResponse struct {
 	} `json:"events"`
 }
 
+// GetGames fetches games for the specified league and date
 func GetGames(league string, date time.Time) ([]Game, error) {
 	var games []Game
 
@@ -62,6 +65,7 @@ func GetGames(league string, date time.Time) ([]Game, error) {
 	return games, nil
 }
 
+// fetchGamesForLeague fetches games for a specific league
 func fetchGamesForLeague(league string, date time.Time) ([]Game, error) {
 	dateStr := date.Format("20060102")
 
@@ -124,7 +128,19 @@ func fetchGamesForLeague(league string, date time.Time) ([]Game, error) {
 			}
 		}
 
-		startTime, _ := time.Parse(time.RFC3339, event.Date)
+		// Debug: Print the raw date string to see the format
+		fmt.Printf("DEBUG: Raw date from API: '%s'\n", event.Date)
+
+		startTime, err := time.Parse(time.RFC3339, event.Date)
+		if err != nil {
+			startTime, err = time.Parse("2006-01-02T15:04Z", event.Date)
+			if err != nil {
+				fmt.Printf("Warning: Could not parse date '%s' for game %s: %v\n", event.Date, event.Name, err)
+				startTime = time.Now()
+			}
+		}
+
+		fmt.Printf("DEBUG: Parsed time: %s\n", startTime.Format("3:04 PM MST"))
 
 		game := Game{
 			HomeTeam:  homeTeam,
