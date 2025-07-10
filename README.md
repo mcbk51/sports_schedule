@@ -1,1 +1,1 @@
-This is an app to check the schedule for the current day for the major sports league in the US
+This application provides an elegant solution for viewing the daily schedules of major U.S. sports leagues.
