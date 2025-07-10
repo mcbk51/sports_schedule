@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+
 type Game struct {
 	HomeTeam    string    `json:"home_team"`
 	AwayTeam    string    `json:"away_team"`
@@ -18,6 +19,7 @@ type Game struct {
 	HomeScore   int       `json:"home_score"`
 	AwayScore   int       `json:"away_score"`
 }
+
 
 type ESPNResponse struct {
 	Events []struct {
@@ -44,6 +46,7 @@ type ESPNResponse struct {
 	} `json:"events"`
 }
 
+
 func GetGames(league string, date time.Time) ([]Game, error) {
 	var games []Game
 	
@@ -63,6 +66,7 @@ func GetGames(league string, date time.Time) ([]Game, error) {
 
 	return games, nil
 }
+
 
 func fetchGamesForLeague(league string, date time.Time) ([]Game, error) {
 	dateStr := date.Format("20060102")
@@ -128,17 +132,19 @@ func fetchGamesForLeague(league string, date time.Time) ([]Game, error) {
 		var startTime time.Time
 		var err error
 		
+		// First try the competition date (usually the actual start time)
 		if len(event.Competitions) > 0 && event.Competitions[0].StartDate != "" {
 			startTime, err = time.Parse(time.RFC3339, event.Competitions[0].StartDate)
 		} else if len(event.Competitions) > 0 && event.Competitions[0].Date != "" {
 			startTime, err = time.Parse(time.RFC3339, event.Competitions[0].Date)
 		} else {
+			// Fallback to event date
 			startTime, err = time.Parse(time.RFC3339, event.Date)
 		}
 		
 		if err != nil {
 			fmt.Printf("Warning: Could not parse date for game %s: %v\n", event.Name, err)
-			startTime = time.Now() /
+			startTime = time.Now() // Fallback to current time
 		}
 		
 		game := Game{
