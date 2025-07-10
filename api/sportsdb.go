@@ -18,62 +18,40 @@ type Game struct {
 	Status      string    `json:"status"`
 	HomeScore   int       `json:"home_score"`
 	AwayScore   int       `json:"away_score"`
-	GameID      string    `json:"game_id,omitempty"`
 }
 
-// MySportsFeedsResponse represents the structure of MySportsFeeds API response
-type MySportsFeedsResponse struct {
-	Games []struct {
-		Schedule struct {
-			ID              int    `json:"id"`
-			StartTime       string `json:"startTime"`
-			EndedTime       string `json:"endedTime"`
-			AwayTeam        Team   `json:"awayTeam"`
-			HomeTeam        Team   `json:"homeTeam"`
-			PlayedStatus    string `json:"playedStatus"`
-			DelayedOrPostponedReason string `json:"delayedOrPostponedReason"`
-		} `json:"schedule"`
-		Score struct {
-			AwayScoreTotal int `json:"awayScoreTotal"`
-			HomeScoreTotal int `json:"homeScoreTotal"`
-		} `json:"score"`
-	} `json:"games"`
+// ESPNResponse represents the structure of ESPN API response
+type ESPNResponse struct {
+	Events []struct {
+		Name        string `json:"name"`
+		ShortName   string `json:"shortName"`
+		Date        string `json:"date"`
+		Status      struct {
+			Type struct {
+				Description string `json:"description"`
+			} `json:"type"`
+		} `json:"status"`
+		Competitions []struct {
+			Date        string `json:"date"`
+			StartDate   string `json:"startDate"`
+			Competitors []struct {
+				Team struct {
+					DisplayName string `json:"displayName"`
+					Abbreviation string `json:"abbreviation"`
+				} `json:"team"`
+				HomeAway string `json:"homeAway"`
+				Score    string `json:"score"`
+			} `json:"competitors"`
+		} `json:"competitions"`
+	} `json:"events"`
 }
-
-type Team struct {
-	ID           int    `json:"id"`
-	Abbreviation string `json:"abbreviation"`
-	City         string `json:"city"`
-	Name         string `json:"name"`
-}
-
-const (
-	// MySportsFeeds API base URL
-	baseURL = "https://api.mysportsfeeds.com/v2.1/pull"
-	
-	// You need to get API key from MySportsFeeds
-	// Format: "username:password" (base64 encoded for basic auth)
-	apiKey = "YOUR_API_KEY_HERE"
-)
 
 // GetGames fetches games for the specified league and date
 func GetGames(league string, date time.Time) ([]Game, error) {
 	var games []Game
 	
-	// MySportsFeeds supported leagues
 	leagues := []string{"nfl", "nba", "nhl", "mlb"}
 	if league != "all" {
-		// Validate league
-		found := false
-		for _, l := range leagues {
-			if strings.ToLower(league) == l {
-				found = true
-				break
-			}
-		}
-		if !found {
-			return nil, fmt.Errorf("unsupported league: %s. Supported leagues: %v", league, leagues)
-		}
 		leagues = []string{strings.ToLower(league)}
 	}
 
@@ -89,45 +67,33 @@ func GetGames(league string, date time.Time) ([]Game, error) {
 	return games, nil
 }
 
-// fetchGamesForLeague fetches games for a specific league from MySportsFeeds
+// fetchGamesForLeague fetches games for a specific league
 func fetchGamesForLeague(league string, date time.Time) ([]Game, error) {
-	// Get the season year - MySportsFeeds uses different season formats
-	season := getSeason(league, date)
 	dateStr := date.Format("20060102")
 	
-	// MySportsFeeds API endpoint
-	url := fmt.Sprintf("%s/%s/%s/games.json?fordate=%s", baseURL, league, season, dateStr)
-
-	// Create HTTP client with timeout
-	client := &http.Client{
-		Timeout: 15 * time.Second,
+	// ESPN API endpoint for different leagues
+	var url string
+	switch league {
+	case "nfl":
+		url = fmt.Sprintf("https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?dates=%s", dateStr)
+	case "nba":
+		url = fmt.Sprintf("https://site.api.espn.com/apis/site/v2/sports/basketball/nba/scoreboard?dates=%s", dateStr)
+	case "nhl":
+		url = fmt.Sprintf("https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/scoreboard?dates=%s", dateStr)
+	case "mlb":
+		url = fmt.Sprintf("https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/scoreboard?dates=%s", dateStr)
+	default:
+		return nil, fmt.Errorf("unsupported league: %s", league)
 	}
 
-	// Create request
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-
-	// Add basic auth header
-	if apiKey != "YOUR_API_KEY_HERE" {
-		req.Header.Set("Authorization", "Basic "+apiKey)
-	}
-	req.Header.Set("Accept", "application/json")
-	req.Header.Set("User-Agent", "SportsApp/1.0")
-
-	resp, err := client.Do(req)
+	resp, err := http.Get(url)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch data: %w", err)
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == 401 {
-		return nil, fmt.Errorf("authentication failed - check your API key")
-	}
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("API request failed with status: %d, body: %s", resp.StatusCode, string(body))
+		return nil, fmt.Errorf("API request failed with status: %d", resp.StatusCode)
 	}
 
 	body, err := io.ReadAll(resp.Body)
@@ -135,170 +101,65 @@ func fetchGamesForLeague(league string, date time.Time) ([]Game, error) {
 		return nil, fmt.Errorf("failed to read response: %w", err)
 	}
 
-	var msfResp MySportsFeedsResponse
-	if err := json.Unmarshal(body, &msfResp); err != nil {
+	var espnResp ESPNResponse
+	if err := json.Unmarshal(body, &espnResp); err != nil {
 		return nil, fmt.Errorf("failed to parse JSON: %w", err)
 	}
 
-	return parseGamesResponse(msfResp, league)
-}
-
-// parseGamesResponse parses the MySportsFeeds response into our Game struct
-func parseGamesResponse(resp MySportsFeedsResponse, league string) ([]Game, error) {
 	var games []Game
-	
-	for _, game := range resp.Games {
-		schedule := game.Schedule
-		score := game.Score
+	for _, event := range espnResp.Events {
+		if len(event.Competitions) == 0 || len(event.Competitions[0].Competitors) < 2 {
+			continue
+		}
+
+		comp := event.Competitions[0]
+		var homeTeam, awayTeam string
+		var homeScore, awayScore int
+
+		for _, competitor := range comp.Competitors {
+			if competitor.HomeAway == "home" {
+				homeTeam = competitor.Team.DisplayName
+				if competitor.Score != "" {
+					fmt.Sscanf(competitor.Score, "%d", &homeScore)
+				}
+			} else {
+				awayTeam = competitor.Team.DisplayName
+				if competitor.Score != "" {
+					fmt.Sscanf(competitor.Score, "%d", &awayScore)
+				}
+			}
+		}
+
+		// Try to get the start time from multiple possible fields
+		var startTime time.Time
+		var err error
 		
-		// Parse start time
-		startTime, err := time.Parse(time.RFC3339, schedule.StartTime)
+		// First try the competition date (usually the actual start time)
+		if len(event.Competitions) > 0 && event.Competitions[0].StartDate != "" {
+			startTime, err = time.Parse(time.RFC3339, event.Competitions[0].StartDate)
+		} else if len(event.Competitions) > 0 && event.Competitions[0].Date != "" {
+			startTime, err = time.Parse(time.RFC3339, event.Competitions[0].Date)
+		} else {
+			// Fallback to event date
+			startTime, err = time.Parse(time.RFC3339, event.Date)
+		}
+		
 		if err != nil {
-			fmt.Printf("Warning: Could not parse start time for game %d: %v\n", schedule.ID, err)
-			startTime = time.Now()
+			fmt.Printf("Warning: Could not parse date for game %s: %v\n", event.Name, err)
+			startTime = time.Now() // Fallback to current time
 		}
-
-		// Determine game status
-		status := "Scheduled"
-		if schedule.PlayedStatus == "COMPLETED" {
-			status = "Final"
-		} else if schedule.PlayedStatus == "LIVE" {
-			status = "In Progress"
-		} else if schedule.PlayedStatus == "POSTPONED" {
-			status = "Postponed"
-		}
-
-		// Build team names
-		homeTeam := fmt.Sprintf("%s %s", schedule.HomeTeam.City, schedule.HomeTeam.Name)
-		awayTeam := fmt.Sprintf("%s %s", schedule.AwayTeam.City, schedule.AwayTeam.Name)
-
-		gameObj := Game{
+		
+		game := Game{
 			HomeTeam:  homeTeam,
 			AwayTeam:  awayTeam,
 			StartTime: startTime,
 			League:    strings.ToUpper(league),
-			Status:    status,
-			HomeScore: score.HomeScoreTotal,
-			AwayScore: score.AwayScoreTotal,
-			GameID:    fmt.Sprintf("%d", schedule.ID),
+			Status:    event.Status.Type.Description,
+			HomeScore: homeScore,
+			AwayScore: awayScore,
 		}
-		games = append(games, gameObj)
+		games = append(games, game)
 	}
 
 	return games, nil
-}
-
-// getSeason determines the season string for MySportsFeeds API
-func getSeason(league string, date time.Time) string {
-	year := date.Year()
-	
-	switch league {
-	case "nfl":
-		// NFL season runs from September to February
-		if date.Month() >= 9 {
-			return fmt.Sprintf("%d-regular", year)
-		}
-		return fmt.Sprintf("%d-regular", year-1)
-	case "nba":
-		// NBA season runs from October to April
-		if date.Month() >= 10 {
-			return fmt.Sprintf("%d-%d-regular", year, year+1)
-		}
-		return fmt.Sprintf("%d-%d-regular", year-1, year)
-	case "nhl":
-		// NHL season runs from October to April
-		if date.Month() >= 10 {
-			return fmt.Sprintf("%d-%d-regular", year, year+1)
-		}
-		return fmt.Sprintf("%d-%d-regular", year-1, year)
-	case "mlb":
-		// MLB season runs from April to September
-		return fmt.Sprintf("%d-regular", year)
-	default:
-		return fmt.Sprintf("%d-regular", year)
-	}
-}
-
-// GetPlayerStats fetches player statistics for a specific game
-func GetPlayerStats(league string, gameID string) (interface{}, error) {
-	season := getSeason(league, time.Now())
-	url := fmt.Sprintf("%s/%s/%s/games/%s/playerstats.json", baseURL, league, season, gameID)
-
-	client := &http.Client{
-		Timeout: 15 * time.Second,
-	}
-
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-
-	if apiKey != "YOUR_API_KEY_HERE" {
-		req.Header.Set("Authorization", "Basic "+apiKey)
-	}
-	req.Header.Set("Accept", "application/json")
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch data: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("API request failed with status: %d", resp.StatusCode)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response: %w", err)
-	}
-
-	var stats interface{}
-	if err := json.Unmarshal(body, &stats); err != nil {
-		return nil, fmt.Errorf("failed to parse JSON: %w", err)
-	}
-
-	return stats, nil
-}
-
-// GetStandings fetches league standings
-func GetStandings(league string) (interface{}, error) {
-	season := getSeason(league, time.Now())
-	url := fmt.Sprintf("%s/%s/%s/standings.json", baseURL, league, season)
-
-	client := &http.Client{
-		Timeout: 15 * time.Second,
-	}
-
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-
-	if apiKey != "YOUR_API_KEY_HERE" {
-		req.Header.Set("Authorization", "Basic "+apiKey)
-	}
-	req.Header.Set("Accept", "application/json")
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch data: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("API request failed with status: %d", resp.StatusCode)
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response: %w", err)
-	}
-
-	var standings interface{}
-	if err := json.Unmarshal(body, &standings); err != nil {
-		return nil, fmt.Errorf("failed to parse JSON: %w", err)
-	}
-
-	return standings, nil
 }
