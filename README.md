@@ -3,4 +3,15 @@ This CLI application offers a streamlined way to view daily schedules for major 
 It displays all games for a specified date directly in the terminal. If a game is in progress, the current score is shown along with its status. The app also indicates if a game has been delayed or has already finished.
 You can view schedules for any past, present or future date.
 
+Output example:
+
+📅 Sports Schedule for NFL - Thursday, September 4, 2025
+============================================================
+
+🏈 NFL (1 games)
+--------------------------------------------------
+  5:20 PM  Dallas Cowboys @ Philadelphia Eagles  Scheduled
+
+============================================================
+Total games: 1
 
