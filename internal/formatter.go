@@ -9,7 +9,7 @@ import (
 )
 
 func PrintSchedule(league string, date time.Time, games []api.Game) {
-	fmt.Printf("\n🏈 🏀 ⚾ 🏒 Sports Schedule for %s - %s\n", strings.ToUpper(league), date.Format("Monday, January 2, 2006"))
+	fmt.Printf("\n📅 Sports Schedule for %s - %s\n", strings.ToUpper(league), date.Format("Monday, January 2, 2006"))
 	fmt.Println(strings.Repeat("=", 60))
 
 	// Group games by league
