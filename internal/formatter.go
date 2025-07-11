@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
 	"github.com/mcbk51/sport_schedule/api"
 )
 
@@ -18,28 +19,39 @@ func PrintSchedule(league string, date time.Time, games []api.Game) {
 	}
 
 	for leagueName, leagueGames := range gamesByLeague {
-		fmt.Printf("\n📊 %s (%d games)\n", leagueName, len(leagueGames))
-		fmt.Println(strings.Repeat("-", 40))
-
+		switch leagueName {
+		case "NFL":
+			fmt.Printf("\n🏈 %s (%d games)\n", leagueName, len(leagueGames))
+			fmt.Println(strings.Repeat("-", 50))
+		case "NBA":
+			fmt.Printf("\n🏀 %s (%d games)\n", leagueName, len(leagueGames))
+			fmt.Println(strings.Repeat("-", 50))
+		case "MLB":
+			fmt.Printf("\n⚾ %s (%d games)\n", leagueName, len(leagueGames))
+			fmt.Println(strings.Repeat("-", 50))
+		case "NHL":
+			fmt.Printf("\n🏒 %s (%d games)\n", leagueName, len(leagueGames))
+			fmt.Println(strings.Repeat("-", 50))
+		}
 		for _, game := range leagueGames {
 			// Format time in local timezone
 			localTime := game.StartTime.Local()
 			timeStr := localTime.Format("3:04 PM")
-			
+
 			// Create the matchup string
 			matchup := fmt.Sprintf("%s @ %s", game.AwayTeam, game.HomeTeam)
-			
+
 			// Show scores if game has started/finished
 			if game.Status != "Scheduled" && (game.HomeScore > 0 || game.AwayScore > 0) {
-				fmt.Printf("  %-6s  %-35s  %s (%d-%d)\n", 
+				fmt.Printf("  %-6s  %-35s  %s (%d-%d)\n",
 					timeStr, matchup, game.Status, game.AwayScore, game.HomeScore)
 			} else {
-				fmt.Printf("  %-6s  %-35s  %s\n", 
+				fmt.Printf("  %-6s  %-35s  %s\n",
 					timeStr, matchup, game.Status)
 			}
 		}
 	}
-	
+
 	fmt.Println("\n" + strings.Repeat("=", 60))
 	fmt.Printf("Total games: %d\n", len(games))
 }
