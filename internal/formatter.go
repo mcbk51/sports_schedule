@@ -55,3 +55,19 @@ func PrintSchedule(league string, date time.Time, games []api.Game) {
 	fmt.Println("\n" + strings.Repeat("=", 60))
 	fmt.Printf("Total games: %d\n", len(games))
 }
+
+func FilterByTeam(games []api.Game, teamName string) []api.Game {
+	var filteredGames []api.Game
+	teamLower := strings.ToLower(teamName)
+
+	for _, game := range games {
+		homeTeamLower := strings.ToLower(game.HomeTeam)
+		awayTeamLower := strings.ToLower(game.AwayTeam)
+
+		if strings.Contains(homeTeamLower, teamLower) || strings.Contains(awayTeamLower, teamLower) {
+			filteredGames = append(filteredGames, game)
+		}
+	}
+
+	return filteredGames
+}
