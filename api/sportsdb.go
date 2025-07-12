@@ -22,7 +22,7 @@ type Game struct {
 type ESPNResponse struct {
 	Events []struct {
 		Name      string `json:"name"`
-		ShortName string `json:"shortName"`
+		ShortName string `json:"shortName"` // ex. "LAL vs NYK"
 		Date      string `json:"date"`
 		Status    struct {
 			Type struct {

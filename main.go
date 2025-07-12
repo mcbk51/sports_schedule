@@ -6,17 +6,17 @@ import (
 	"os"
 
 	"github.com/mcbk51/sport_schedule/api"
-	"github.com/mcbk51/sport_schedule/internal"
+	"github.com/mcbk51/sport_schedule/config"
 )
 
 func main() {
-	// Setting up the main flags of the function
+	// Setting up the main flags of the function and errors
 	league := flag.String("league", "all", "League to show games for (nfl, nba, nhl, mlb, or all)")
 	date := flag.String("date", "today", "Date (today, tomorrow, or MM-DD-YYYY)")
 	team := flag.String("team", "", "Team name to filter by (e.g., 'Lakers', 'Giants', 'Yankees')")
 	flag.Parse()
 
-	parsedDate, err := internal.ParseDate(*date)
+	parsedDate, err := config.ParseDate(*date)
 	if err != nil {
 		fmt.Println("Invalid date:", err)
 		os.Exit(1)
@@ -29,7 +29,7 @@ func main() {
 	}
 
 	if *team != "" {
-		games = internal.FilterByTeam(games, *team)
+		games = config.FilterByTeam(games, *team)
 	}
 
 	if len(games) == 0 {
@@ -41,5 +41,5 @@ func main() {
 		return
 	}
 
-	internal.PrintSchedule(*league, parsedDate, games)
+	config.PrintSchedule(*league, parsedDate, games)
 }
