@@ -33,43 +33,43 @@ Total games: 2
 Total games: 1
 
 
-📅 Sports Schedule for MLB - Friday, July 11, 2025
+go run .
+
+📅 Sports Schedule for ALL - Saturday, July 12, 2025
 ============================================================
 
-⚾ MLB (16 games)
+⚾ MLB (15 games)
 --------------------------------------------------
-  12:10 PM  Cleveland Guardians @ Chicago White Sox  Final (4-2)
+  10:05 AM  Chicago Cubs @ New York Yankees      In Progress (1-0)
 
-  4:05 PM  Chicago Cubs @ New York Yankees      Final (0-11)
+  10:10 AM  Seattle Mariners @ Detroit Tigers    Delayed
 
-  4:05 PM  Miami Marlins @ Baltimore Orioles    Final (2-5)
+  11:10 AM  Pittsburgh Pirates @ Minnesota Twins  Scheduled
 
-  4:10 PM  Colorado Rockies @ Cincinnati Reds   Final (3-2)
+  11:15 AM  Atlanta Braves @ St. Louis Cardinals  Scheduled
 
-  4:10 PM  Seattle Mariners @ Detroit Tigers    Final (12-3)
+  1:05 PM  Miami Marlins @ Baltimore Orioles    Scheduled
 
-  4:10 PM  Tampa Bay Rays @ Boston Red Sox      Final (4-5)
+  1:05 PM  Los Angeles Dodgers @ San Francisco Giants  Scheduled
 
-  5:10 PM  Cleveland Guardians @ Chicago White Sox  Final (4-5)
+  1:10 PM  Colorado Rockies @ Cincinnati Reds   Scheduled
 
-  5:10 PM  New York Mets @ Kansas City Royals   Final (8-3)
+  1:10 PM  Tampa Bay Rays @ Boston Red Sox      Scheduled
 
-  5:10 PM  Pittsburgh Pirates @ Minnesota Twins  Final (1-2)
+  1:10 PM  Cleveland Guardians @ Chicago White Sox  Scheduled
 
-  5:10 PM  Texas Rangers @ Houston Astros       Final (7-3)
+  1:10 PM  New York Mets @ Kansas City Royals   Scheduled
 
-  5:10 PM  Washington Nationals @ Milwaukee Brewers  Final (3-8)
+  1:10 PM  Washington Nationals @ Milwaukee Brewers  Scheduled
 
-  5:15 PM  Atlanta Braves @ St. Louis Cardinals  Final (6-5)
+  4:35 PM  Texas Rangers @ Houston Astros       Scheduled
 
-  6:38 PM  Arizona Diamondbacks @ Los Angeles Angels  Final (5-6)
+  4:35 PM  Philadelphia Phillies @ San Diego Padres  Scheduled
 
-  6:40 PM  Philadelphia Phillies @ San Diego Padres  Final (2-4)
+  6:38 PM  Arizona Diamondbacks @ Los Angeles Angels  Scheduled
 
-  7:05 PM  Toronto Blue Jays @ Athletics        Final (7-6)
-
-  7:15 PM  Los Angeles Dodgers @ San Francisco Giants  Final (7-8)
+  7:05 PM  Toronto Blue Jays @ Athletics        Scheduled
 
 ============================================================
-Total games: 16
+Total games: 15
 
