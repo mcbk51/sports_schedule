@@ -46,7 +46,7 @@ func main() {
 	internal.PrintSchedule(*league, parsedDate, games)
 }
 
-// Date and time setup
+// Setting the date flag to work with multiple formats
 func parseDate(dateStr string) (time.Time, error) {
 	now := time.Now()
 
