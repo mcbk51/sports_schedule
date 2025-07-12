@@ -2,16 +2,80 @@ package config
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"time"
 
 	"github.com/mcbk51/sport_schedule/api"
 )
 
+// ANSI color codes
+const (
+	ColorReset   = "\033[0m"
+	ColorRed     = "\033[31m"
+	ColorGreen   = "\033[32m"
+	ColorYellow  = "\033[33m"
+	ColorBlue    = "\033[34m"
+	ColorMagenta = "\033[35m"
+	ColorCyan    = "\033[36m"
+	ColorWhite   = "\033[37m"
+
+	ColorBrightRed     = "\033[91m"
+	ColorBrightGreen   = "\033[92m"
+	ColorBrightYellow  = "\033[93m"
+	ColorBrightBlue    = "\033[94m"
+	ColorBrightMagenta = "\033[95m"
+	ColorBrightCyan    = "\033[96m"
+	ColorBrightWhite   = "\033[97m"
+
+	ColorBold      = "\033[1m"
+	ColorUnderline = "\033[4m"
+	ColorDim       = "\033[2m"
+)
+
+// Checks if the terminal supports color output
+func supportsColor() bool {
+	term := os.Getenv("TERM")
+	noColor := os.Getenv("NO_COLOR")
+
+	if noColor != "" {
+		return false
+	}
+
+	if term == "dumb" || term == "" {
+		return false
+	}
+	return true
+}
+
+func colorize(text, colorCode string) string {
+	if supportsColor() {
+		return colorCode + text + ColorReset
+	}
+	return text
+}
+
+func getStatusColor(status string) string {
+	switch {
+	case strings.Contains(status, "In Progress") || strings.Contains(status, "Live"):
+		return ColorBold + ColorBrightGreen
+	case strings.Contains(status, "Delayed") || strings.Contains(status, "Postponed"):
+		return ColorBold + ColorBrightYellow
+	case strings.Contains(status, "Final") || strings.Contains(status, "Completed"):
+		return ColorBrightMagenta
+	case strings.Contains(status, "Scheduled"):
+		return ColorCyan
+	default:
+		return ColorWhite
+	}
+}
+
 // Main print function for the schedule
 func PrintSchedule(league string, date time.Time, games []api.Game) {
-	fmt.Printf("\n📅 Sports Schedule for %s - %s\n", strings.ToUpper(league), date.Format("Monday, January 2, 2006"))
-	fmt.Println(strings.Repeat("=", 60))
+
+	header := fmt.Sprintf("📅 Sports Schedule for %s - %s", strings.ToUpper(league), date.Format("Monday, January 2, 2006"))
+	fmt.Printf("\n%s\n", colorize(header, ColorBold+ColorBrightWhite))
+	fmt.Println(colorize(strings.Repeat("=", 60), ColorBlue))
 
 	// Group games by league
 	gamesByLeague := make(map[string][]api.Game)
@@ -20,44 +84,50 @@ func PrintSchedule(league string, date time.Time, games []api.Game) {
 	}
 
 	for leagueName, leagueGames := range gamesByLeague {
-
-		// Addding the specific logo to each sport
+		// Adding the specific logo to each sport with colors
+		var leagueHeader string
 		switch leagueName {
 		case "NFL":
-			fmt.Printf("\n🏈 %s (%d games)\n", leagueName, len(leagueGames))
-			fmt.Println(strings.Repeat("-", 50))
+			leagueHeader = fmt.Sprintf("🏈 %s (%d games)", leagueName, len(leagueGames))
 		case "NBA":
-			fmt.Printf("\n🏀 %s (%d games)\n", leagueName, len(leagueGames))
-			fmt.Println(strings.Repeat("-", 50))
+			leagueHeader = fmt.Sprintf("🏀 %s (%d games)", leagueName, len(leagueGames))
 		case "MLB":
-			fmt.Printf("\n⚾ %s (%d games)\n", leagueName, len(leagueGames))
-			fmt.Println(strings.Repeat("-", 50))
+			leagueHeader = fmt.Sprintf("⚾ %s (%d games)", leagueName, len(leagueGames))
 		case "NHL":
-			fmt.Printf("\n🏒 %s (%d games)\n", leagueName, len(leagueGames))
-			fmt.Println(strings.Repeat("-", 50))
+			leagueHeader = fmt.Sprintf("🏒 %s (%d games)", leagueName, len(leagueGames))
+		default:
+			leagueHeader = fmt.Sprintf("%s (%d games)", leagueName, len(leagueGames))
 		}
+
+		fmt.Printf("\n%s\n", colorize(leagueHeader, ColorBold+ColorBrightYellow))
+		fmt.Println(colorize(strings.Repeat("-", 50), ColorBlue))
 
 		for _, game := range leagueGames {
 			// Format time in local timezone
 			localTime := game.StartTime.Local()
 			timeStr := localTime.Format("3:04 PM")
 
-			// Create the matchup string
 			matchup := fmt.Sprintf("%s @ %s", game.AwayTeam, game.HomeTeam)
+
+			coloredTime := colorize(timeStr, ColorBold+ColorMagenta)
+
+			coloredMatchup := colorize(matchup, ColorBrightWhite)
+
+			statusColor := getStatusColor(game.Status)
 
 			// Show scores if game has started/finished
 			if game.Status != "Scheduled" && (game.HomeScore > 0 || game.AwayScore > 0) {
-				fmt.Printf("  %-6s  %-35s  %s (%d-%d)\n",
-					timeStr, matchup, game.Status, game.AwayScore, game.HomeScore)
+				statusWithScore := fmt.Sprintf("%s (%d-%d)", game.Status, game.AwayScore, game.HomeScore)
+				coloredStatus := colorize(statusWithScore, statusColor)
+				fmt.Printf("  %-15s  %-45s  %s\n", coloredTime, coloredMatchup, coloredStatus)
 			} else {
-				fmt.Printf("  %-6s  %-35s  %s\n",
-					timeStr, matchup, game.Status)
+				coloredStatus := colorize(game.Status, statusColor)
+				fmt.Printf("  %-15s  %-45s  %s\n", coloredTime, coloredMatchup, coloredStatus)
 			}
 		}
 	}
 
-	fmt.Println("\n" + strings.Repeat("=", 60))
-	fmt.Printf("Total games: %d\n", len(games))
+	fmt.Println(colorize("\n"+strings.Repeat("=", 60), ColorBlue))
 }
 
 // Adding a filter by team flag
