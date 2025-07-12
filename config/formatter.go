@@ -66,7 +66,7 @@ func getStatusColor(status string) string {
 	}
 }
 
-// formatTeamWithRecord formats a team name with its record
+// Formats a team name with its record
 func formatTeamWithRecord(teamName, record string) string {
 	if record != "" {
 		return fmt.Sprintf("%s (%s)", teamName, record)

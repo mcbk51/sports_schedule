@@ -56,7 +56,7 @@ type TeamRecord struct {
 	Record   string
 }
 
-// fetches games for the specified league and date
+// Fetches games for the specified league and date
 func GetGames(league string, date time.Time) ([]Game, error) {
 	var games []Game
 	leagues := []string{"nfl", "nba", "nhl", "mlb"}
@@ -77,7 +77,7 @@ func GetGames(league string, date time.Time) ([]Game, error) {
 	return games, nil
 }
 
-// fetches games for a specific league
+// Fetches games for a specific league
 func fetchGamesForLeague(league string, date time.Time) ([]Game, error) {
 	dateStr := date.Format("20060102")
 
