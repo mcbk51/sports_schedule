@@ -4,8 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	"strings"
-	"time"
 
 	"github.com/mcbk51/sport_schedule/api"
 	"github.com/mcbk51/sport_schedule/internal"
@@ -18,7 +16,7 @@ func main() {
 	team := flag.String("team", "", "Team name to filter by (e.g., 'Lakers', 'Giants', 'Yankees')")
 	flag.Parse()
 
-	parsedDate, err := parseDate(*date)
+	parsedDate, err := internal.ParseDate(*date)
 	if err != nil {
 		fmt.Println("Invalid date:", err)
 		os.Exit(1)
@@ -44,24 +42,4 @@ func main() {
 	}
 
 	internal.PrintSchedule(*league, parsedDate, games)
-}
-
-// Setting the date flag to work with multiple formats
-func parseDate(dateStr string) (time.Time, error) {
-	now := time.Now()
-
-	switch strings.ToLower(dateStr) {
-	case "today":
-		return now, nil
-	case "tomorrow":
-		return now.AddDate(0, 0, 1), nil
-	default:
-		if parsedTime, err := time.Parse("01-02-2006", dateStr); err == nil {
-			return parsedTime, nil
-		}
-		if parsedTime, err := time.Parse("2006-01-02", dateStr); err == nil {
-			return parsedTime, nil
-		}
-		return time.Time{}, fmt.Errorf("invalid date format. Use 'today', 'tomorrow', 'MM-DD-YYYY', or 'YYYY-MM-DD'")
-	}
 }
