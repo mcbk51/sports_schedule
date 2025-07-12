@@ -1,6 +1,6 @@
 This CLI application offers a streamlined way to view daily schedules for major U.S. sports leagues.
 
-It displays all games for a specified date directly in the terminal. If a game is in progress, the current score is shown along with its status. The app also indicates if a game has been delayed or has already finished. You can view schedules for any past, present, or future date.
+It displays all games for a specified date directly in the terminal. If a game is in progress, the current score is shown along with its status. The app also indicates if a game has been delayed or has already finished. You can view schedules for any past, present, or future date. The current win/loss record is displayed.     
 
 In addition to date-based filtering, you can narrow the results by league or team using command-line flags. For example, use --league nba to view only NBA games, or --team "Lakers" to see games involving a specific team. Combine flags like --date 07-14-2025 --league nfl --team "Seahawks" to tailor the output further. By default, the app shows all leagues, all teams, and assumes the current date if no flags are provided.
 
