@@ -8,6 +8,7 @@ import (
 	"github.com/mcbk51/sport_schedule/api"
 )
 
+// Main print function for the schedule
 func PrintSchedule(league string, date time.Time, games []api.Game) {
 	fmt.Printf("\n📅 Sports Schedule for %s - %s\n", strings.ToUpper(league), date.Format("Monday, January 2, 2006"))
 	fmt.Println(strings.Repeat("=", 60))
@@ -19,6 +20,8 @@ func PrintSchedule(league string, date time.Time, games []api.Game) {
 	}
 
 	for leagueName, leagueGames := range gamesByLeague {
+
+		// Addding the specific logo to each sport
 		switch leagueName {
 		case "NFL":
 			fmt.Printf("\n🏈 %s (%d games)\n", leagueName, len(leagueGames))
@@ -33,6 +36,7 @@ func PrintSchedule(league string, date time.Time, games []api.Game) {
 			fmt.Printf("\n🏒 %s (%d games)\n", leagueName, len(leagueGames))
 			fmt.Println(strings.Repeat("-", 50))
 		}
+
 		for _, game := range leagueGames {
 			// Format time in local timezone
 			localTime := game.StartTime.Local()
@@ -56,6 +60,7 @@ func PrintSchedule(league string, date time.Time, games []api.Game) {
 	fmt.Printf("Total games: %d\n", len(games))
 }
 
+// Adding a filter by team flag
 func FilterByTeam(games []api.Game, teamName string) []api.Game {
 	var filteredGames []api.Game
 	teamLower := strings.ToLower(teamName)
