@@ -12,6 +12,7 @@ import (
 )
 
 func main() {
+	// Setting up the main flags of the function
 	league := flag.String("league", "all", "League to show games for (nfl, nba, nhl, mlb, or all)")
 	date := flag.String("date", "today", "Date (today, tomorrow, or MM-DD-YYYY)")
 	team := flag.String("team", "", "Team name to filter by (e.g., 'Lakers', 'Giants', 'Yankees')")
@@ -45,6 +46,7 @@ func main() {
 	internal.PrintSchedule(*league, parsedDate, games)
 }
 
+// Date and time setup
 func parseDate(dateStr string) (time.Time, error) {
 	now := time.Now()
 

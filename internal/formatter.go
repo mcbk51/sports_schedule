@@ -76,3 +76,23 @@ func FilterByTeam(games []api.Game, teamName string) []api.Game {
 
 	return filteredGames
 }
+
+// Date and time setup
+func parseDate(dateStr string) (time.Time, error) {
+	now := time.Now()
+
+	switch strings.ToLower(dateStr) {
+	case "today":
+		return now, nil
+	case "tomorrow":
+		return now.AddDate(0, 0, 1), nil
+	default:
+		if parsedTime, err := time.Parse("01-02-2006", dateStr); err == nil {
+			return parsedTime, nil
+		}
+		if parsedTime, err := time.Parse("2006-01-02", dateStr); err == nil {
+			return parsedTime, nil
+		}
+		return time.Time{}, fmt.Errorf("invalid date format. Use 'today', 'tomorrow', 'MM-DD-YYYY', or 'YYYY-MM-DD'")
+	}
+}
