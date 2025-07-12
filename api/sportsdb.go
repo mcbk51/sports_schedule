@@ -10,19 +10,21 @@ import (
 )
 
 type Game struct {
-	HomeTeam  string    `json:"home_team"`
-	AwayTeam  string    `json:"away_team"`
-	StartTime time.Time `json:"start_time"`
-	League    string    `json:"league"`
-	Status    string    `json:"status"`
-	HomeScore int       `json:"home_score"`
-	AwayScore int       `json:"away_score"`
+	HomeTeam   string    `json:"home_team"`
+	AwayTeam   string    `json:"away_team"`
+	StartTime  time.Time `json:"start_time"`
+	League     string    `json:"league"`
+	Status     string    `json:"status"`
+	HomeScore  int       `json:"home_score"`
+	AwayScore  int       `json:"away_score"`
+	HomeRecord string    `json:"home_record"`
+	AwayRecord string    `json:"away_record"`
 }
 
 type ESPNResponse struct {
 	Events []struct {
 		Name      string `json:"name"`
-		ShortName string `json:"shortName"` // ex. "LAL vs NYK"
+		ShortName string `json:"shortName"`
 		Date      string `json:"date"`
 		Status    struct {
 			Type struct {
@@ -34,19 +36,31 @@ type ESPNResponse struct {
 				Team struct {
 					DisplayName  string `json:"displayName"`
 					Abbreviation string `json:"abbreviation"`
+					ID           string `json:"id"`
 				} `json:"team"`
 				HomeAway string `json:"homeAway"`
 				Score    string `json:"score"`
+				Records  []struct {
+					Name    string `json:"name"`
+					Summary string `json:"summary"`
+					Type    string `json:"type"`
+				} `json:"records"`
 			} `json:"competitors"`
 		} `json:"competitions"`
 	} `json:"events"`
 }
 
+// Team's win-loss record
+type TeamRecord struct {
+	TeamName string
+	Record   string
+}
+
 // fetches games for the specified league and date
 func GetGames(league string, date time.Time) ([]Game, error) {
 	var games []Game
-
 	leagues := []string{"nfl", "nba", "nhl", "mlb"}
+
 	if league != "all" {
 		leagues = []string{strings.ToLower(league)}
 	}
@@ -111,20 +125,27 @@ func fetchGamesForLeague(league string, date time.Time) ([]Game, error) {
 		comp := event.Competitions[0]
 		var homeTeam, awayTeam string
 		var homeScore, awayScore int
+		var homeRecord, awayRecord string
 
 		for _, competitor := range comp.Competitors {
+			// Extract record from the competitor data
+			record := extractRecord(competitor.Records, league)
+
 			if competitor.HomeAway == "home" {
 				homeTeam = competitor.Team.DisplayName
+				homeRecord = record
 				if competitor.Score != "" {
 					fmt.Sscanf(competitor.Score, "%d", &homeScore)
 				}
 			} else {
 				awayTeam = competitor.Team.DisplayName
+				awayRecord = record
 				if competitor.Score != "" {
 					fmt.Sscanf(competitor.Score, "%d", &awayScore)
 				}
 			}
 		}
+
 		// Fixing the game start time
 		startTime, err := time.Parse(time.RFC3339, event.Date)
 		if err != nil {
@@ -136,16 +157,63 @@ func fetchGamesForLeague(league string, date time.Time) ([]Game, error) {
 		}
 
 		game := Game{
-			HomeTeam:  homeTeam,
-			AwayTeam:  awayTeam,
-			StartTime: startTime,
-			League:    strings.ToUpper(league),
-			Status:    event.Status.Type.Description,
-			HomeScore: homeScore,
-			AwayScore: awayScore,
+			HomeTeam:   homeTeam,
+			AwayTeam:   awayTeam,
+			StartTime:  startTime,
+			League:     strings.ToUpper(league),
+			Status:     event.Status.Type.Description,
+			HomeScore:  homeScore,
+			AwayScore:  awayScore,
+			HomeRecord: homeRecord,
+			AwayRecord: awayRecord,
 		}
+
 		games = append(games, game)
 	}
 
 	return games, nil
+}
+
+// Extracts the appropriate record from the records array
+func extractRecord(records []struct {
+	Name    string `json:"name"`
+	Summary string `json:"summary"`
+	Type    string `json:"type"`
+}, league string) string {
+
+	if len(records) == 0 {
+		return ""
+	}
+
+	// For different leagues, look for different record types
+	switch league {
+	case "nfl":
+
+		for _, record := range records {
+			if record.Name == "overall" || record.Type == "total" {
+				return record.Summary
+			}
+		}
+	case "nba", "nhl":
+
+		for _, record := range records {
+			if record.Name == "overall" || record.Type == "total" {
+				return record.Summary
+			}
+		}
+	case "mlb":
+
+		for _, record := range records {
+			if record.Name == "overall" || record.Type == "total" {
+				return record.Summary
+			}
+		}
+	}
+
+	// If no specific record found, return the first one
+	if len(records) > 0 {
+		return records[0].Summary
+	}
+
+	return ""
 }

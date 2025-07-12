@@ -11,15 +11,14 @@ import (
 
 // ANSI color codes
 const (
-	ColorReset   = "\033[0m"
-	ColorRed     = "\033[31m"
-	ColorGreen   = "\033[32m"
-	ColorYellow  = "\033[33m"
-	ColorBlue    = "\033[34m"
-	ColorMagenta = "\033[35m"
-	ColorCyan    = "\033[36m"
-	ColorWhite   = "\033[37m"
-
+	ColorReset         = "\033[0m"
+	ColorRed           = "\033[31m"
+	ColorGreen         = "\033[32m"
+	ColorYellow        = "\033[33m"
+	ColorBlue          = "\033[34m"
+	ColorMagenta       = "\033[35m"
+	ColorCyan          = "\033[36m"
+	ColorWhite         = "\033[37m"
 	ColorBrightRed     = "\033[91m"
 	ColorBrightGreen   = "\033[92m"
 	ColorBrightYellow  = "\033[93m"
@@ -27,21 +26,18 @@ const (
 	ColorBrightMagenta = "\033[95m"
 	ColorBrightCyan    = "\033[96m"
 	ColorBrightWhite   = "\033[97m"
-
-	ColorBold      = "\033[1m"
-	ColorUnderline = "\033[4m"
-	ColorDim       = "\033[2m"
+	ColorBold          = "\033[1m"
+	ColorUnderline     = "\033[4m"
+	ColorDim           = "\033[2m"
 )
 
 // Checks if the terminal supports color output
 func supportsColor() bool {
 	term := os.Getenv("TERM")
 	noColor := os.Getenv("NO_COLOR")
-
 	if noColor != "" {
 		return false
 	}
-
 	if term == "dumb" || term == "" {
 		return false
 	}
@@ -70,12 +66,19 @@ func getStatusColor(status string) string {
 	}
 }
 
+// formatTeamWithRecord formats a team name with its record
+func formatTeamWithRecord(teamName, record string) string {
+	if record != "" {
+		return fmt.Sprintf("%s (%s)", teamName, record)
+	}
+	return teamName
+}
+
 // Main print function for the schedule
 func PrintSchedule(league string, date time.Time, games []api.Game) {
-
 	header := fmt.Sprintf("📅 Sports Schedule for %s - %s", strings.ToUpper(league), date.Format("Monday, January 2, 2006"))
 	fmt.Printf("\n%s\n", colorize(header, ColorBold+ColorBrightWhite))
-	fmt.Println(colorize(strings.Repeat("=", 60), ColorBlue))
+	fmt.Println(colorize(strings.Repeat("=", 80), ColorBlue))
 
 	// Group games by league
 	gamesByLeague := make(map[string][]api.Game)
@@ -100,34 +103,35 @@ func PrintSchedule(league string, date time.Time, games []api.Game) {
 		}
 
 		fmt.Printf("\n%s\n", colorize(leagueHeader, ColorBold+ColorBrightYellow))
-		fmt.Println(colorize(strings.Repeat("-", 50), ColorBlue))
+		fmt.Println(colorize(strings.Repeat("-", 70), ColorBlue))
 
 		for _, game := range leagueGames {
 			// Format time in local timezone
 			localTime := game.StartTime.Local()
 			timeStr := localTime.Format("3:04 PM")
 
-			matchup := fmt.Sprintf("%s @ %s", game.AwayTeam, game.HomeTeam)
+			// Format teams with records
+			awayTeamFormatted := formatTeamWithRecord(game.AwayTeam, game.AwayRecord)
+			homeTeamFormatted := formatTeamWithRecord(game.HomeTeam, game.HomeRecord)
+			matchup := fmt.Sprintf("%s @ %s", awayTeamFormatted, homeTeamFormatted)
 
 			coloredTime := colorize(timeStr, ColorBold+ColorMagenta)
-
 			coloredMatchup := colorize(matchup, ColorBrightWhite)
-
 			statusColor := getStatusColor(game.Status)
 
 			// Show scores if game has started/finished
 			if game.Status != "Scheduled" && (game.HomeScore > 0 || game.AwayScore > 0) {
 				statusWithScore := fmt.Sprintf("%s (%d-%d)", game.Status, game.AwayScore, game.HomeScore)
 				coloredStatus := colorize(statusWithScore, statusColor)
-				fmt.Printf("  %-15s  %-45s  %s\n", coloredTime, coloredMatchup, coloredStatus)
+				fmt.Printf("  %-15s  %-55s  %s\n", coloredTime, coloredMatchup, coloredStatus)
 			} else {
 				coloredStatus := colorize(game.Status, statusColor)
-				fmt.Printf("  %-15s  %-45s  %s\n", coloredTime, coloredMatchup, coloredStatus)
+				fmt.Printf("  %-15s  %-55s  %s\n", coloredTime, coloredMatchup, coloredStatus)
 			}
 		}
 	}
 
-	fmt.Println(colorize("\n"+strings.Repeat("=", 60), ColorBlue))
+	fmt.Println(colorize("\n"+strings.Repeat("=", 80), ColorBlue))
 }
 
 // Adding a filter by team flag
